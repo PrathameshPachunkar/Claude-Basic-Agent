@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import type { ChatCompletionTool } from "openai/resources";
 
 async function main() {
   const [, , flag, prompt] = process.argv;
@@ -16,11 +17,28 @@ async function main() {
   const client = new OpenAI({
     apiKey: apiKey,
     baseURL: baseURL,
-  });
-
+  })
+const readTool:ChatCompletionTool = {
+  "type": "function",
+  "function": {
+    "name": "Read",
+    "description": "Read and return the contents of a file",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "file_path": {
+          "type": "string",
+          "description": "The path to the file to read"
+        }
+      },
+      "required": ["file_path"]
+    }
+  }
+}
   const response = await client.chat.completions.create({
     model: "anthropic/claude-haiku-4.5",
     messages: [{ role: "user", content: prompt }],
+    tools:[ readTool]
   });
 
   if (!response.choices || response.choices.length === 0) {
