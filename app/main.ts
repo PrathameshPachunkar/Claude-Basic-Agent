@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import type { ChatCompletionTool } from "openai/resources";
 
+
 async function main() {
   const [, , flag, prompt] = process.argv;
   const apiKey = process.env.OPENROUTER_API_KEY;
@@ -35,7 +36,9 @@ const readTool:ChatCompletionTool = {
     }
   }
 }
-  const response = await client.chat.completions.create({
+let isTool_call = true;
+   const agentLoop = async ()=> {
+    const response = await client.chat.completions.create({
     model: "anthropic/claude-haiku-4.5",
     messages: [{ role: "user", content: prompt }],
     tools:[ readTool]
@@ -46,7 +49,9 @@ const readTool:ChatCompletionTool = {
   }
 const toolCalls = response.choices[0].message.tool_calls;
 
+
   if (toolCalls && toolCalls.length > 0) {
+    isTool_call = true;
     if(toolCalls[0].type==='function'){
       if (toolCalls[0].function.name === "Read") {
       const functionArguments = JSON.parse(toolCalls[0].function.arguments);
@@ -58,11 +63,13 @@ const toolCalls = response.choices[0].message.tool_calls;
     }
     }
   } else {
+    isTool_call= false;
     const message = response.choices[0].message;
     if (message.content) {
       process.stdout.write(message.content);
     }
   }
+   }
   // You can use print statements as follows for debugging, they'll be visible when running tests.
   console.error("Logs from your program will appear here!");
 
