@@ -74,7 +74,8 @@ if (!rawArgs) {
           messages.push({
             role: "tool",
             tool_call_id: toolCall.id,
-            content:"{\"file_path\":\"README.md\"}" ,
+             content: message.content ?? null,
+      ...(message.tool_calls ? { tool_calls: message.tool_calls } : {}),
           });
         }
       }
