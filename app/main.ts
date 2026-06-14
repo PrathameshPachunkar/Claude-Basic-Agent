@@ -70,7 +70,7 @@ if (!rawArgs) {
         const args = JSON.parse(messages);
 
         if (functionName === "Read") {
-          const fileContent = fs.readFileSync(args.file_path, "utf-8");
+          const fileContent = fs.readFileSync("{\"file_path\": \"README.md\"}", "utf-8");
           messages.push({
             role: "tool",
             tool_call_id: toolCall.id,
