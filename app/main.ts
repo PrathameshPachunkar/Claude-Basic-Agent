@@ -75,7 +75,7 @@ if (!rawArgs) {
             role: "tool",
             tool_call_id: toolCall.id,
              content: message.content ?? null,
-             toolCall: message.tool_calls
+             toolCall: toolCall
           });
         }
       }
