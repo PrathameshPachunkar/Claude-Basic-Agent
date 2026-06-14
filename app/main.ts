@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import type { ChatCompletionTool } from "openai/resources";
-
+import fs from 'fs'
 
 async function main() {
   const [, , flag, prompt] = process.argv;
@@ -36,40 +36,84 @@ const readTool:ChatCompletionTool = {
     }
   }
 }
-let isTool_call = true;
-   const agentLoop = async ()=> {
+  const messages: any = [{ role: "user", content: prompt, }];
+  
+while (true) {
     const response = await client.chat.completions.create({
-    model: "anthropic/claude-haiku-4.5",
-    messages: [{ role: "user", content: prompt }],
-    tools:[ readTool]
-  });
+      model: "anthropic/claude-haiku-4.5",
+      messages: messages,
+      tools: [readTool],
+    });
 
-  if (!response.choices || response.choices.length === 0) {
-    throw new Error("no choices in response");
-  }
-const toolCalls = response.choices[0].message.tool_calls;
-
-
-  if (toolCalls && toolCalls.length > 0) {
-    isTool_call = true;
-    if(toolCalls[0].type==='function'){
-      if (toolCalls[0].function.name === "Read") {
-      const functionArguments = JSON.parse(toolCalls[0].function.arguments);
-      const filePath = functionArguments.file_path;
-      const fileContents = await Bun.file(filePath).text();
-      process.stdout.write(fileContents);
-    } else {
-      console.error("No tool call found for this command", toolCalls);
+    if (!response.choices || response.choices.length === 0) {
+      throw new Error("no choices in response");
     }
+
+    // You can use print statements as follows for debugging, they'll be visible when running tests.
+    const choice = response.choices[0];
+    const message = choice.message;
+
+    messages.push({
+      role: "assistant",
+      content: message.content ?? null,
+      ...(message.tool_calls ? { tool_calls: message.tool_calls } : {}),
+    });
+const rawArgs = readTool.function.parameters;
+
+if (!rawArgs) {
+  throw new Error("Tool call arguments missing");
+}
+
+    if (message.tool_calls && message.tool_calls.length > 0) {
+      for (const toolCall of message.tool_calls) {
+        const functionName = readTool.function.name;
+        const args = JSON.parse(messages);
+
+        if (functionName === "Read") {
+          const fileContent = fs.readFileSync(args.file_path, "utf-8");
+          messages.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content: fileContent,
+          });
+        }
+      }
+      continue;
     }
-  } else {
-    isTool_call= false;
-    const message = response.choices[0].message;
+
     if (message.content) {
-      process.stdout.write(message.content);
+      console.log(message.content);
     }
+    break;
   }
-   }
+  // const response = await client.chat.completions.create({
+  //   model: "anthropic/claude-haiku-4.5",
+  //   messages: [{ role: "user", content: prompt }],
+  //   tools:[ readTool]
+  // });
+
+//   if (!response.choices || response.choices.length === 0) {
+//     throw new Error("no choices in response");
+//   }
+// const toolCalls = response.choices[0].message.tool_calls;
+
+  // if (toolCalls && toolCalls.length > 0) {
+  //   if(toolCalls[0].type==='function'){
+  //     if (toolCalls[0].function.name === "Read") {
+  //     const functionArguments = JSON.parse(toolCalls[0].function.arguments);
+  //     const filePath = functionArguments.file_path;
+  //     const fileContents = await Bun.file(filePath).text();
+  //     process.stdout.write(fileContents);
+  //   } else {
+  //     console.error("No tool call found for this command", toolCalls);
+  //   }
+  //   }
+  // } else {
+  //   const message = response.choices[0].message;
+  //   if (message.content) {
+  //     process.stdout.write(message.content);
+  //   }
+  // }
   // You can use print statements as follows for debugging, they'll be visible when running tests.
   console.error("Logs from your program will appear here!");
 
