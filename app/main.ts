@@ -67,7 +67,7 @@ if (!rawArgs) {
     if (message.tool_calls && message.tool_calls.length > 0) {
       for (const toolCall of message.tool_calls) {
         const functionName = readTool.function.name;
-        const args = JSON.parse(toolCall.type);
+       // const args = JSON.parse(toolCall.type);
 
         if (functionName === "Read") {
           
