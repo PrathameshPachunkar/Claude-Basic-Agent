@@ -74,7 +74,7 @@ if (!rawArgs) {
           messages.push({
             role: "tool",
             tool_call_id: toolCall.id,
-            content: readTool.function.parameters,
+            content:"{\"file_path\":\"README.md\"}" ,
           });
         }
       }
