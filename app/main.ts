@@ -67,14 +67,14 @@ if (!rawArgs) {
     if (message.tool_calls && message.tool_calls.length > 0) {
       for (const toolCall of message.tool_calls) {
         const functionName = readTool.function.name;
-        //const args = JSON.parse(messages);
+        const args = JSON.parse(toolCall.type);
 
         if (functionName === "Read") {
-          const fileContent = fs.readFileSync("{\"file_path\": \"README.md\"}", "utf-8");
+          
           messages.push({
             role: "tool",
             tool_call_id: toolCall.id,
-            content: fileContent,
+            content: readTool.function.parameters,
           });
         }
       }
