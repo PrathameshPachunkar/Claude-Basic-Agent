@@ -98,6 +98,15 @@ async function main() {
             content: fileContent,
           });
         }
+        else if (toolCall.function.name === "Write") {
+        fs.writeFileSync(args.file_path, args.content, "utf-8");
+
+        messages.push({
+          role: "tool",
+          tool_call_id: toolCall.id,
+          content: `Wrote file: ${args.file_path}`,
+        });
+      }
       }
       continue;
     }
