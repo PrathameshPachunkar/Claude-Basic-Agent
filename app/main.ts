@@ -56,7 +56,7 @@ async function main() {
     // You can use print statements as follows for debugging, they'll be visible when running tests.
     const choice = response.choices[0];
     const message = choice.message;
-    console.log(choice, " choices from the reponse")
+    //console.log(choice, " choices from the reponse")
 
     messages.push({
       role: "assistant",
