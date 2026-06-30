@@ -59,6 +59,23 @@ async function main() {
     }
   }
 };
+const bashTool: ChatCompletionTool ={
+  "type": "function",
+  "function": {
+    "name": "Bash",
+    "description": "Execute a shell command",
+    "parameters": {
+      "type": "object",
+      "required": ["command"],
+      "properties": {
+        "command": {
+          "type": "string",
+          "description": "The command to execute"
+        }
+      }
+    }
+  }
+}
 
   const messages:any = [{ role: "user", content: prompt }];
 
@@ -66,7 +83,7 @@ async function main() {
     const response = await client.chat.completions.create({
       model: "anthropic/claude-haiku-4.5",
       messages: messages,
-      tools: [tools,writeTool],
+      tools: [tools,writeTool,bashTool],
     });
 
     if (!response.choices || response.choices.length === 0) {
@@ -107,6 +124,25 @@ async function main() {
           content: `Wrote file: ${args.file_path}`,
         });
       }
+      // 2. Fill in the Bash handler
+else if (toolCall.function.name === "Bash") {
+  try {
+    const { execSync } = await import("child_process");
+    const output = execSync(args.command, { encoding: "utf-8", stdio: "pipe" });
+    messages.push({
+      role: "tool",
+      tool_call_id: toolCall.id,
+      content: output,
+    });
+  } catch (err: any) {
+    const output = [err.stdout, err.stderr].filter(Boolean).join("\n") || err.message;
+    messages.push({
+      role: "tool",
+      tool_call_id: toolCall.id,
+      content: output,
+    });
+  }
+}
       }
       continue;
     }
