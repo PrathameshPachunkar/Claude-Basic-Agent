@@ -38,7 +38,27 @@ async function main() {
         },
       },
     };
-  
+  const writeTool : ChatCompletionTool = {
+  "type": "function",
+  "function": {
+    "name": "Write",
+    "description": "Write content to a file",
+    "parameters": {
+      "type": "object",
+      "required": ["file_path", "content"],
+      "properties": {
+        "file_path": {
+          "type": "string",
+          "description": "The path of the file to write to"
+        },
+        "content": {
+          "type": "string",
+          "description": "The content to write to the file"
+        }
+      }
+    }
+  }
+};
 
   const messages:any = [{ role: "user", content: prompt }];
 
@@ -46,7 +66,7 @@ async function main() {
     const response = await client.chat.completions.create({
       model: "anthropic/claude-haiku-4.5",
       messages: messages,
-      tools: [tools],
+      tools: [tools,writeTool],
     });
 
     if (!response.choices || response.choices.length === 0) {
